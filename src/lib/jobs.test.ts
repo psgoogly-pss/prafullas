@@ -1,19 +1,64 @@
 import { describe, it, expect } from 'vitest';
-import { sortByNewest, formatPostedDate } from './jobs';
+import { filterJobs, sortByNewest, formatPostedDate } from './jobs';
 import type { Job } from '../types/job';
 
-function makeJob(slug: string, postedDate: string): Job {
+function makeJob(
+    slug: string,
+    postedDate: string,
+    department = 'Technology',
+    location = 'Remote',
+): Job {
     return {
         slug,
         title: `Role ${slug}`,
-        department: 'Technology',
-        location: 'Remote',
+        department,
+        location,
         type: 'Full-time',
         remote: true,
         postedDate,
         summary: 'A role.',
     };
 }
+
+describe('filterJobs', () => {
+    const jobs = [
+        makeJob('technology-remote', '2027-01-01', 'Technology', 'Remote'),
+        makeJob('finance-remote', '2027-01-02', 'Finance', 'Remote'),
+        makeJob('finance-office', '2027-01-03', 'Finance', 'Woodinville'),
+    ];
+
+    it('filters by department', () => {
+        expect(filterJobs(jobs, { department: 'Finance' }).map((job) => job.slug)).toEqual([
+            'finance-remote',
+            'finance-office',
+        ]);
+    });
+
+    it('filters by location', () => {
+        expect(filterJobs(jobs, { location: 'Remote' }).map((job) => job.slug)).toEqual([
+            'technology-remote',
+            'finance-remote',
+        ]);
+    });
+
+    it('combines department and location filters', () => {
+        expect(
+            filterJobs(jobs, { department: 'Finance', location: 'Woodinville' }).map(
+                (job) => job.slug,
+            ),
+        ).toEqual(['finance-office']);
+    });
+
+    it('returns all jobs when no filters are selected', () => {
+        expect(filterJobs(jobs)).toEqual(jobs);
+    });
+
+    it('returns no jobs when the selected filters do not match', () => {
+        expect(
+            filterJobs(jobs, { department: 'Technology', location: 'Woodinville' }),
+        ).toEqual([]);
+    });
+});
 
 describe('sortByNewest', () => {
     it('orders jobs by posted date, newest first', () => {

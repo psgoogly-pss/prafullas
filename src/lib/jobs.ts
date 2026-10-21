@@ -7,6 +7,21 @@
  */
 import type { Job } from '../types/job';
 
+export interface JobFilters {
+    department?: string;
+    location?: string;
+}
+
+/** Return jobs matching every selected filter (does not mutate input). */
+export function filterJobs(jobs: Job[], filters: JobFilters = {}): Job[] {
+    return jobs.filter((job) => {
+        const matchesDepartment =
+            !filters.department || job.department === filters.department;
+        const matchesLocation = !filters.location || job.location === filters.location;
+        return matchesDepartment && matchesLocation;
+    });
+}
+
 /** Return jobs sorted by posted date, newest first (does not mutate input). */
 export function sortByNewest(jobs: Job[]): Job[] {
     return [...jobs].sort(
